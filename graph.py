@@ -1,7 +1,7 @@
 
 import pandas as pd
 from dafsa import DAFSA
-from scipy.stats import gaussian_kde
+from scipy.stats import norm
 import numpy as np
 
 # 1. Load and preprocess the event log
@@ -15,6 +15,7 @@ sequences = grouped["Activity"].apply(lambda x: x.astype(str).tolist()).to_dict(
 # 3. Create DAFSA from sequences
 dafsa = DAFSA(list(sequences.values()))
 graph = dafsa.to_graph() 
+
 # State map 
 state_map = {state: i for i, state in enumerate(graph.nodes())}
 
@@ -48,12 +49,13 @@ for case_id, group in grouped:
         tgt = next_state(graph, current, act)
 
         src = current
+
         if i == 0:
-            rel = 0
+            rel = 0.0
         else:
             rel = (times[i] - times[i-1]).total_seconds()
 
-        rows.append([case_id, act, times[i], src, tgt, rel])
+        rows.append([case_id, act, times[i], state_map[src], state_map[tgt], rel])
         current = tgt
 
 df = pd.DataFrame(rows, columns=[
@@ -64,53 +66,67 @@ print(df)
 group_cols = ["SrcState", "Activity", "TgtState"]
 
 # 6. Normalized relative time
-def normalize(group):
-    r_min = group["RelTime"].min()
-    r_max = group["RelTime"].max()
+def normalize_rt(group):
+    min_t = group["RelTime"].min()
+    max_t = group["RelTime"].max()
 
-    if r_max == r_min:
-        group["NrmRelTime"] = 0.5
-        group["Range"] = 1
+    if max_t == min_t:
+        group["NrmRelTime"] = round(0.0, 2)
     else:
-        group["NrmRelTime"] = (group["RelTime"] - r_min) / (r_max - r_min)
-        group["Range"] = r_max - r_min
+        group["NrmRelTime"] = round(((group["RelTime"] - min_t) / (max_t - min_t)), 2)
     return group
 
-df = df.groupby(group_cols, group_keys=False).apply(normalize)
 
+df = df.groupby(group_cols, group_keys=False).apply(normalize_rt)
 # 7. Precision
-def precision(row):
-    if row["RelTime"] == 0:
-        return min(1, 86400 / row["Range"]) if row["Range"] > 0 else 1
+def precision(group):
+    initial_window = 86400  # 1 día en segundos
+    relative_window = 10    # 10 segundos
+    
+    # Calcular rango
+    r_min = group["RelTime"].min()
+    r_max = group["RelTime"].max()
+    rango = r_max - r_min
+    
+    # Seleccionamos la ventana correspondiente para cada fila
+    ventanas = np.where(group["RelTime"] == 0, initial_window, relative_window)
+    
+    if rango > 0:
+        p = np.minimum(1.0, ventanas / rango)
     else:
-        return min(1, 10 / row["Range"]) if row["Range"] > 0 else 1
+        p = 1.0
+    
+    return pd.Series(p, index=group.index)
 
-df["Prec"] = df.apply(precision, axis=1).round(2)
+df["Prec"] = df.groupby(group_cols, group_keys=False).apply(precision)
 
 # 8. Prior Knowledge PK
+def normalize_time(tiempos):
+    min_t = min(tiempos)
+    max_t = max(tiempos)
+    if max_t == min_t:
+        return np.zeros_like(tiempos)
+    return (tiempos - min_t) / (max_t - min_t)
+
 def estimate_pk(group, delta=0.3):
-    values = group["NrmRelTime"].values
-
-    if len(values) < 3 or np.all(values == values[0]):
-        group["PK"] = (1 - delta) / 2
-        return group
-
-    kde = gaussian_kde(values)
-
-    def cdf(x):
-        return kde.integrate_box_1d(0, x)
+    valores_norm = normalize_time(group["RelTime"].values)
+    group["NrmRelTime"] = valores_norm
 
     pks = []
     for v, p in zip(group["NrmRelTime"], group["Prec"]):
-        lo = max(0, v - p)
-        hi = min(1, v + p)
-        pk = cdf(hi) - cdf(lo)
+        # Para p=0 o un rango muy pequeño, usamos el fallback
+        if p == 0:
+            pk = (1 - delta) / 2
+        else:
+            pk = norm.cdf(v + p, loc=np.mean(valores_norm), scale=np.std(valores_norm)+1e-6) - \
+                 norm.cdf(v - p, loc=np.mean(valores_norm), scale=np.std(valores_norm)+1e-6)
         pks.append(pk)
 
     group["PK"] = pks
     return group
-
-df = df.groupby(group_cols, group_keys=False).apply(estimate_pk)
+df = df.groupby(["CaseID"], group_keys=False).apply(estimate_pk)
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+df[numeric_cols] = df[numeric_cols].round(2)
 
 print(df)
 
