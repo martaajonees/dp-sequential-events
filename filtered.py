@@ -34,10 +34,12 @@ def DAFSA_filtrated(df_annotated, delta=0.3):
     # 3. Recalculate PK for the filtered dataframe
     group_cols = ["SrcState", "Activity", "TgtState"]
     df = df.groupby(group_cols, group_keys=False).apply(lambda g: estimate_pk(g, delta=delta, name="New PK"))
+    df = df.reset_index(drop=True)
     df = df.drop(columns=["PK"])
 
     # 4. Calculate ϵt for the filtered dataframe
     df["ϵt"] = df.groupby(group_cols, group_keys=False).apply(lambda g: epsilon_t(g, delta))
+    df = df.reset_index(drop=True)
     df = df.drop(columns=["Prec"])
     df = df.drop(columns=["NrmRelTime"])
 
@@ -48,13 +50,14 @@ def DAFSA_filtrated(df_annotated, delta=0.3):
     return df
     
 
-if __name__ == "__main__":
+def filter_main():
     print("Generating DAFSA-annotated table...")
     df = DAFSA_annotated_table("datos_sinteticos.csv")
-    print(df.head(20))
+    print(df)
     print("\nFiltering DAFSA-annotated table...")
     df_filtered = DAFSA_filtrated(df)
-    print(df_filtered.head(20))
+    print(df_filtered)
+    return df_filtered
 
 
     

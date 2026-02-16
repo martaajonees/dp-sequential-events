@@ -19,18 +19,16 @@ def precision(group):
     r = group["RelTime"].max() - group["RelTime"].min()
 
     if r == 0:
-        return pd.Series(np.zeros(len(group)), index=group.index)
+        return pd.Series(np.full(len(group), 0.01), index=group.index)
     
     p_vals = []
     for rt in group["RelTime"]:
-        if rt <= 1:
-            precision_real = 1 
+        if rt == group["RelTime"].min():
+            precision_real = 1.0  
         else:
-            precision_real = 10 / 60
+            precision_real = 10/60  
 
         p_norm = precision_real / r
-        p_norm = min(p_norm, 0.1)
-        p_norm = max(p_norm, 0.01)
 
         p_vals.append(p_norm)
     return pd.Series(p_vals, index=group.index)
