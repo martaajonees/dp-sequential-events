@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"   
+
+[project]
+name = "clip_protocol"
+version = "0.1"
+authors = [
+  { name="Marta Jones González", email="martajon10@gmail.com" },
+]
+description = "Privatized "
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+dependencies = [
+    "contourpy",
+    "cycler",
+    "dafsa",
+    "et_xmlfile",
+    "fonttools",
+    "graphviz",
+    "kiwisolver",
+    "matplotlib",
+    "networkx",
+    "numpy",
+    "openpyxl",
+    "packaging",
+    "pandas",
+    "pillow",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "scipy",
+    "six",
+    "tzdata"
+]
+
+[project.urls]
+Homepage = "https://github.com/martaajonees/graph-protocol"
+Issues = "https://github.com/martaajonees/graph-protocol/issues"
+
+[project.scripts]
+setup = "graph_protocol.cli:cli_main"
+
+[tool.setuptools]
+include-package-data = true
+
+
