@@ -1,5 +1,5 @@
 
-from annotated import DAFSA_annotated_table, estimate_pk
+from annotated import estimate_pk
 import numpy as np
 import pandas as pd
 import warnings
@@ -23,10 +23,9 @@ def epsilon_t(group, delta):
         epsilons.append(epsilon_k)
     return pd.Series(epsilons, index=group.index)
 
-def DAFSA_filtrated(df_annotated, delta=0.3):
-
+def DAFSA_filtrated(df_annotated, delta=0.3, condition_number=1):
     # 1. Identify cases with condición: PK + delta >= 1
-    risky_cases = df_annotated[df_annotated["PK"] + delta >= 1]["CaseID"].unique()
+    risky_cases = df_annotated[df_annotated["PK"] + delta >= condition_number]["CaseID"].unique()
 
     # 2. Filter the dataframe cases
     df = df_annotated[~df_annotated["CaseID"].isin(risky_cases)].copy()
@@ -48,16 +47,3 @@ def DAFSA_filtrated(df_annotated, delta=0.3):
     df[numeric_cols] = df[numeric_cols].round(2)
 
     return df
-    
-
-def filter_main():
-    print("Generating DAFSA-annotated table...")
-    df = DAFSA_annotated_table("datos_sinteticos.csv")
-    print(df)
-    print("\nFiltering DAFSA-annotated table...")
-    df_filtered = DAFSA_filtrated(df)
-    print(df_filtered)
-    return df_filtered
-
-
-    
