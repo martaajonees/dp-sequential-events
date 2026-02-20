@@ -60,7 +60,7 @@ def estimate_pk(group, delta=0.3, name="PK"):
     return group
 
 # Main function to create annotated table
-def DAFSA_annotated_table(nombre_archivo="datos.csv"):
+def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv"):
     # 1. Load and preprocess the event log
     log = pd.read_csv(nombre_archivo, parse_dates=["Timestamp"])
     log = log.sort_values(["CaseID", "Timestamp"]).reset_index(drop=True) # Sort logs

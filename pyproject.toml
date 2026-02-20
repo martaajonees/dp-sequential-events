@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "graph_protocol"
-version = "0.1"
+version = "0.2"
 authors = [
   { name="Marta Jones González", email="martajon10@gmail.com" },
 ]
@@ -45,7 +45,7 @@ Homepage = "https://github.com/martaajonees/graph-protocol"
 Issues = "https://github.com/martaajonees/graph-protocol/issues"
 
 [project.scripts]
-setup = "graph_protocol.cli:cli_main"
+privseq = "graph_protocol.cli:cli_main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/graph_protocol"]

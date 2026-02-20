@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import uuid
-from filtered import filter_main
 
 def laplace_noise(scale):
     return np.random.laplace(loc=0.0, scale=scale)
@@ -204,30 +203,3 @@ def clean_final_table(df):
     df_final = df_final.sort_values("Timestamp").reset_index(drop=True)
 
     return df_final
-
-
-if __name__ == "__main__":
-    # Step 1: Filter DAFSA-annotated table
-    df_filtered = filter_main()
-
-    # Step 2: Case sampling
-    df_sampled, duplication_counter = case_sampling(df_filtered)
-
-    # Step 3: Inject time noise
-    df_noisy = inject_time_noise(df_sampled, duplication_counter)
-
-    # Step 4: Reconstruct timestamps
-    df_reconstructed = reconstruct_timestamps(df_noisy)
-
-    # Step 5: Compress time range
-    df_compressed = compress_timestamps(df_reconstructed)
-
-    # Step 6: Anonymize Case IDs
-    df_final = anonymize_case_ids(df_compressed)
-
-    # Step 7: Final ordering
-    df_final = df_final.sort_values("FinalTimestamp").reset_index(drop=True)
-
-    df = clean_final_table(df_final)
-    print("\n Final anonymized log:")
-    print(df)
