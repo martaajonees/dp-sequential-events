@@ -1,1 +1,1 @@
-# graph-protocol
+# Differential Privacy in Sequential Event Logging
