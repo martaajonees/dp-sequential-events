@@ -47,7 +47,7 @@ jobs:
         run: |
           python -m build
           
-      - name: Upload to TestPyPI
+      - name: Upload to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.OFICIAL_PYPI }}
         run: |
