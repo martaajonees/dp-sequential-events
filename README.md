@@ -44,13 +44,17 @@ dp-sequential-events
 You can run the CLI in Google Colab or locally.
 For Colab: [Open in Google Colab](https://colab.research.google.com/drive/17jejpDl4sX9L8885Pll4D_PJpxudtFL9?usp=sharing)
 
-Install from PyPI:
+Install from PyPI ([see the project in PyPI](https://pypi.org/project/dp-sequential-events/)):
 ```
 pip install dp-sequential-events
 ```
 Run the CLI tool:
 ```
 privseq
+```
+Run the pattern log functionality:
+```
+privseq-patterns
 ```
 
 ## 👩‍💻 Authors
