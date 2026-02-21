@@ -9,3 +9,4 @@ pyproject_hooks
 python-dateutil
 scipy
 six
+tabulate

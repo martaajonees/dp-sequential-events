@@ -2,17 +2,18 @@
 from dp_sequential_events.main.annotated import DAFSA_annotated_table
 from dp_sequential_events.main.filtered import DAFSA_filtrated
 from dp_sequential_events.main.case_sampling import case_sampling, inject_time_noise, reconstruct_timestamps, compress_timestamps, anonymize_case_ids, clean_final_table
+from tabulate import tabulate
 
 def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1):
     # Annotated table 
     print("Generating DAFSA-annotated table...")
     df = DAFSA_annotated_table(data_name)
-    print(df)
+    print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
 
     # Filtered table
     print("\nFiltering DAFSA-annotated table...")
     df_filtered = DAFSA_filtrated(df, delta, condition_number)
-    print(df_filtered)
+    print(tabulate(df_filtered.head(10), headers='keys', tablefmt='grid', showindex=False))
 
     len_before = len(df)
     len_after = len(df_filtered)
@@ -47,7 +48,7 @@ def main():
     df_final = sampling_and_anonymization(df_filtered)
 
     print("\nFinal anonymized log:")
-    print(df_final)
+    print(tabulate(df_final.head(10), headers='keys', tablefmt='grid', showindex=False))
 
 
 if __name__ == "__main__":
