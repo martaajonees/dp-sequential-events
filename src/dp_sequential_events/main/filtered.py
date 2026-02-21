@@ -1,5 +1,5 @@
 
-from annotated import estimate_pk
+from dp_sequential_events.main.annotated import estimate_pk
 import numpy as np
 import pandas as pd
 import warnings

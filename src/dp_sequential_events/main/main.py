@@ -1,7 +1,7 @@
 
-from annotated import DAFSA_annotated_table
-from filtered import DAFSA_filtrated
-from case_sampling import case_sampling, inject_time_noise, reconstruct_timestamps, compress_timestamps, anonymize_case_ids, clean_final_table
+from dp_sequential_events.main.annotated import DAFSA_annotated_table
+from dp_sequential_events.main.filtered import DAFSA_filtrated
+from dp_sequential_events.main.case_sampling import case_sampling, inject_time_noise, reconstruct_timestamps, compress_timestamps, anonymize_case_ids, clean_final_table
 
 def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1):
     # Annotated table 

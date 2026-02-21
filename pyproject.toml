@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"   
 
 [project]
-name = "graph_protocol"
-version = "0.2"
+name = "dp-sequential-events"
+version = "1.3.1"
 authors = [
   { name="Marta Jones González", email="martajon10@gmail.com" },
 ]
 description = "Privatized "
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -39,18 +39,19 @@ dependencies = [
     "six",
     "tzdata"
 ]
+packages = ["dp_sequential_events", "dp_sequential_events.main"]
 
 [project.urls]
-Homepage = "https://github.com/martaajonees/graph-protocol"
-Issues = "https://github.com/martaajonees/graph-protocol/issues"
+Homepage = "https://github.com/martaajonees/dp-sequential-events"
+Issues = "https://github.com/martaajonees/dp-sequential-events/issues"
 
 [project.scripts]
-privseq = "graph_protocol.cli:cli_main"
+privseq = "dp_sequential_events.cli:cli_main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/graph_protocol"]
+packages = ["src/dp_sequential_events"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/graph_protocol"]
+include = ["src/dp_sequential_events"]
 
 

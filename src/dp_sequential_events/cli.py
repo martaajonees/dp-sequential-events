@@ -1,5 +1,5 @@
 
-from graph_protocol.main.main import annotation_and_filtering, sampling_and_anonymization
+from dp_sequential_events.main.main import annotation_and_filtering, sampling_and_anonymization
 
 def cli_main():
     dataset_name = input("Enter dataset name : ")
