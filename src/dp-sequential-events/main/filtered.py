@@ -32,7 +32,11 @@ def DAFSA_filtrated(df_annotated, delta=0.3, condition_number=1):
 
     # 3. Recalculate PK for the filtered dataframe
     group_cols = ["SrcState", "Activity", "TgtState"]
-    df = df.groupby(group_cols, group_keys=False).apply(lambda g: estimate_pk(g, delta=delta, name="New PK"))
+    df["New PK"] = (
+        df.groupby(group_cols)
+        .apply(lambda g: estimate_pk(g, delta=delta, name="New PK")["New PK"])
+        .values
+    )
     df = df.reset_index(drop=True)
     df = df.drop(columns=["PK"])
 

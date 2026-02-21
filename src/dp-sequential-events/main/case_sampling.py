@@ -199,7 +199,7 @@ def clean_final_table(df):
         "FinalTimestamp": "Timestamp"
     })
 
-    df_final["Timestamp"] = df_final["Timestamp"].dt.floor("S")
+    df_final["Timestamp"] = df_final["Timestamp"].dt.floor("s")
     df_final = df_final.sort_values("Timestamp").reset_index(drop=True)
 
     return df_final

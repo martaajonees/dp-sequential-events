@@ -128,13 +128,27 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv"):
     group_cols = ["SrcState", "Activity", "TgtState"]
 
     # 6. Normalized relative time
-    df = df.groupby(group_cols, group_keys=False).apply(normalize_rt)
+    #df = df.groupby(group_cols, group_keys=False).apply(normalize_rt).reset_index(drop=True)
+    min_rt = df.groupby(group_cols)["RelTime"].transform("min")
+    max_rt = df.groupby(group_cols)["RelTime"].transform("max")
+
+    range_rt = max_rt - min_rt
+
+    df["NrmRelTime"] = np.where(
+        range_rt == 0,
+        0.0,
+        (df["RelTime"] - min_rt) / range_rt
+    )
     
     # 7. Precision
-    df["Prec"] = df.groupby(group_cols, group_keys=False).apply(precision)
+    df["Prec"] = df.groupby(group_cols).apply(precision).values
 
     # 8. Prior Knowledge PK
-    df = df.groupby(group_cols, group_keys=False).apply(estimate_pk)
+    df["PK"] = (
+        df.groupby(group_cols)
+        .apply(lambda g: estimate_pk(g)["PK"])
+        .values
+    )
 
     # Round numeric columns 
     numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -162,6 +176,5 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv"):
         dot.edge(str(state_map[u]), str(state_map[v]), label=lbl)
 
     dot.render("dafsa", format="png", cleanup=True)
-
 
     return df
