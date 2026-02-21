@@ -3,6 +3,7 @@ import pandas as pd
 from dafsa import DAFSA
 from scipy.stats import gaussian_kde
 import numpy as np
+from graphviz import Digraph
 
 # Functions
 def normalize_rt(group):
@@ -60,7 +61,7 @@ def estimate_pk(group, delta=0.3, name="PK"):
     return group
 
 # Main function to create annotated table
-def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv"):
+def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv", download_dafsa=True):
     # 1. Load and preprocess the event log
     log = pd.read_csv(nombre_archivo, parse_dates=["Timestamp"])
     log = log.sort_values(["CaseID", "Timestamp"]).reset_index(drop=True) # Sort logs
@@ -155,26 +156,25 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv"):
     df[numeric_cols] = df[numeric_cols].round(2)
 
     # 9. Visualize the DAFSA
-    from graphviz import Digraph
+    if download_dafsa:
+        dot = Digraph(engine="dot")
+        dot.attr(rankdir="LR", dpi="200")
 
-    dot = Digraph(engine="dot")
-    dot.attr(rankdir="LR", dpi="200")
+        dot.attr("node",
+                shape="circle",
+                style="filled",
+                fillcolor="lightgray",
+                fontcolor="black")
 
-    dot.attr("node",
-            shape="circle",
-            style="filled",
-            fillcolor="lightgray",
-            fontcolor="black")
+        dot.attr("edge",
+                color="gray40",
+                penwidth="0.3",
+                arrowsize="0.4")
 
-    dot.attr("edge",
-            color="gray40",
-            penwidth="0.3",
-            arrowsize="0.4")
+        for u, v, data in graph.edges(data=True):
+            lbl = data.get("label", "")
+            dot.edge(str(state_map[u]), str(state_map[v]), label=lbl)
 
-    for u, v, data in graph.edges(data=True):
-        lbl = data.get("label", "")
-        dot.edge(str(state_map[u]), str(state_map[v]), label=lbl)
-
-    dot.render("dafsa", format="png", cleanup=True)
+        dot.render("dafsa", format="png", cleanup=True)
 
     return df

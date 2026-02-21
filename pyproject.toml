@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dp-sequential-events"
-version = "1.3.5"
+version = "1.4"
 authors = [
   { name="Marta Jones González", email="martajon10@gmail.com" },
 ]
@@ -47,6 +47,7 @@ Issues = "https://github.com/martaajonees/dp-sequential-events/issues"
 
 [project.scripts]
 privseq = "dp_sequential_events.cli:cli_main"
+privseq-patterns = "dp_sequential_events.cli:cli_patterns"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dp_sequential_events"]

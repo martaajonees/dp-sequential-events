@@ -2,22 +2,28 @@
 from dp_sequential_events.main.annotated import DAFSA_annotated_table
 from dp_sequential_events.main.filtered import DAFSA_filtrated
 from dp_sequential_events.main.case_sampling import case_sampling, inject_time_noise, reconstruct_timestamps, compress_timestamps, anonymize_case_ids, clean_final_table
+from dp_sequential_events.main.patterns import most_common_patterns
 from tabulate import tabulate
 
-def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1):
+def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True, download_dafsa=True):
     # Annotated table 
-    print("Generating DAFSA-annotated table...")
-    df = DAFSA_annotated_table(data_name)
-    print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
+    if _print:
+        print("Generating DAFSA-annotated table...")
+    df = DAFSA_annotated_table(data_name, download_dafsa)
+    if _print:
+        print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
 
     # Filtered table
-    print("\nFiltering DAFSA-annotated table...")
+    if _print:
+        print("\nFiltering DAFSA-annotated table...")
     df_filtered = DAFSA_filtrated(df, delta, condition_number)
-    print(tabulate(df_filtered.head(10), headers='keys', tablefmt='grid', showindex=False))
+    if _print:
+        print(tabulate(df_filtered.head(10), headers='keys', tablefmt='grid', showindex=False))
 
     len_before = len(df)
     len_after = len(df_filtered)
-    print(f"\n Cases removed: {len_before - len_after} ({(len_before - len_after) / len_before:.2%})")
+    if _print:
+        print(f"\n Cases removed: {len_before - len_after} ({(len_before - len_after) / len_before:.2%})")
     return df_filtered
 
 
@@ -50,6 +56,24 @@ def main():
     print("\nFinal anonymized log:")
     print(tabulate(df_final.head(10), headers='keys', tablefmt='grid', showindex=False))
 
+    
+def main_patterns():
+    dataset_name = input("\nEnter dataset path: ").strip()
+    delta = float(input("Enter delta value: "))
+    condition_number = float(input("Enter condition number: "))
+
+    df_filtered = annotation_and_filtering(dataset_name, delta, condition_number, False, False)
+
+    patterns_original = most_common_patterns(df_filtered)
+    print("\nMost common full patterns in original log:")
+    print(tabulate(patterns_original, headers='keys', tablefmt='grid', showindex=False))
+
+    df_final = sampling_and_anonymization(df_filtered)
+
+    patterns_anon = most_common_patterns(df_final)
+    print("\nMost common full patterns in anonymized log:")
+    print(tabulate(patterns_anon, headers='keys', tablefmt='grid', showindex=False))
+
 
 if __name__ == "__main__":
-    main()
+    main_patterns()

@@ -194,7 +194,7 @@ def clean_final_table(df):
     df_final = df[["AnonCaseID", "Activity", "FinalTimestamp"]].copy()
 
     df_final = df_final.rename(columns={
-        "AnonCaseID": "Case ID",
+        "AnonCaseID": "CaseID",
         "Activity": "Activity",
         "FinalTimestamp": "Timestamp"
     })
