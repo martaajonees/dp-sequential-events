@@ -42,7 +42,7 @@ dp-sequential-events
 ## 🚀 Online Execution
 
 You can run the CLI in Google Colab or locally.
-For Colab: [Open in Google Colab]((https://colab.research.google.com/drive/17jejpDl4sX9L8885Pll4D_PJpxudtFL9?usp=sharing))
+For Colab: [Open in Google Colab](https://colab.research.google.com/drive/17jejpDl4sX9L8885Pll4D_PJpxudtFL9?usp=sharing)
 
 Install from PyPI:
 ```
