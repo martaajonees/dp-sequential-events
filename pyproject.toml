@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dp-sequential-events"
-version = "1.4"
+version = "1.5"
 authors = [
   { name="Marta Jones González", email="martajon10@gmail.com" },
 ]

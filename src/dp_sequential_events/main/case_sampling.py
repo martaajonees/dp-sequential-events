@@ -6,86 +6,63 @@ import uuid
 def laplace_noise(scale):
     return np.random.laplace(loc=0.0, scale=scale)
 
+def extract_full_patterns(df):
+    patterns = (
+        df.sort_values(["CaseID", "Timestamp"])
+          .groupby("CaseID")["Activity"]
+          .apply(lambda x: "".join(x))
+          .reset_index(name="Pattern")
+    )
+    return patterns
+
+def count_pattern_frequencies(patterns):
+    pattern_counts = (
+        patterns.groupby("Pattern")["CaseID"]
+        .count()
+        .reset_index(name="count")
+    )
+    return pattern_counts
+
 def case_sampling(df, epsilon_d=0.5):
     df = df.copy()
     df["CaseID"] = df["CaseID"].astype(str)
-    
-    group_cols = ["SrcState", "Activity", "TgtState"]
 
-    # Count unique cases per transition
-    transition_counts = (
-        df.groupby(group_cols)["CaseID"]
-        .nunique()
-        .reset_index(name="count")
-    )
+    # Group by patterns
+    patterns = extract_full_patterns(df)
+    pattern_groups = patterns.groupby("Pattern")["CaseID"].apply(list).to_dict()
 
-    # Sensibility Δf = 1 
-    delta_f = 1.0
-    scale = delta_f / epsilon_d
+    # Apply Laplace noise to counts and determine how many cases to duplicate/remove
+    scale = 1.0 / epsilon_d
+    duplication_counter = {}
+    df_final = df.copy()
 
-    # Map transitions to their cases
-    transition_cases = (
-        df.groupby(group_cols)["CaseID"]
-        .unique()
-        .to_dict()
-    )
-
-    cases_to_duplicate = []
-    cases_to_remove = set()
-
-    for _, row in transition_counts.iterrows():
-        key = (row["SrcState"], row["Activity"], row["TgtState"])
-        true_count = row["count"]
-
-        noise = laplace_noise(scale)
-        noisy_count = int(round(true_count + noise))
-
+    for pattern, case_list in pattern_groups.items():
+        true_count = len(case_list)
+        noisy_count = int(round(true_count + laplace_noise(scale)))
+        noisy_count = max(0, noisy_count)
         diff = noisy_count - true_count
 
-        available_cases = list(transition_cases.get(key, []))
-
-        if len(available_cases) == 0:
-            continue
-
         if diff > 0:
-            sampled = np.random.choice(
-                available_cases,
-                size=min(diff, len(available_cases)),
-                replace=True
-            )
-            cases_to_duplicate.extend(sampled)
+            # Duplicate complex cases selected randomly
+            sampled = np.random.choice(case_list, size=diff, replace=True)
+            duplicated_rows = []
+            for cid in sampled:
+                case_rows = df_final[df_final["CaseID"] == cid].copy()
+                duplication_counter[cid] = duplication_counter.get(cid, 0) + 1
+                new_id = f"{cid}_dup{duplication_counter[cid]}"
+                case_rows["CaseID"] = new_id
+                duplicated_rows.append(case_rows)
+            if duplicated_rows:
+                df_final = pd.concat([df_final] + duplicated_rows, ignore_index=True)
 
         elif diff < 0:
-            sampled = np.random.choice(
-                available_cases,
-                size=min(abs(diff), len(available_cases)),
-                replace=False
-            )
-            cases_to_remove.update(sampled)
+            # Delete cases randomly
+            remove_cids = np.random.choice(case_list, size=min(abs(diff), len(case_list)), replace=False)
+            df_final = df_final[~df_final["CaseID"].isin(remove_cids)].copy()
 
-    # Delete cases marked for removal
-    df = df[~df["CaseID"].isin(cases_to_remove)].copy()
+    df_final = df_final.sort_values(["CaseID", "Timestamp"]).reset_index(drop=True)
 
-    # Duplicate cases marked for duplication
-    duplicated_rows = []
-    duplication_counter = {}
-
-    for cid in cases_to_duplicate:
-        case_rows = df[df["CaseID"] == cid].copy()
-
-        if len(case_rows) == 0:
-            continue
-
-        duplication_counter[cid] = duplication_counter.get(cid, 0) + 1
-        new_id = f"{cid}_dup{duplication_counter[cid]}"
-        case_rows["CaseID"] = new_id
-
-        duplicated_rows.append(case_rows)
-
-    if duplicated_rows:
-        df = pd.concat([df] + duplicated_rows, ignore_index=True)
-
-    return df, duplication_counter
+    return df_final, duplication_counter
 
 # Adjust noise based on duplication count
 def inject_time_noise(df, duplication_counter):
@@ -200,6 +177,6 @@ def clean_final_table(df):
     })
 
     df_final["Timestamp"] = df_final["Timestamp"].dt.floor("s")
-    df_final = df_final.sort_values("Timestamp").reset_index(drop=True)
+    df_final = df_final.sort_values(["CaseID", "Timestamp"]).reset_index(drop=True)
 
     return df_final
