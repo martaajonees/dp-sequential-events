@@ -4,6 +4,7 @@ from dp_sequential_events.main.filtered import DAFSA_filtrated
 from dp_sequential_events.main.case_sampling import case_sampling, inject_time_noise, reconstruct_timestamps, compress_timestamps, anonymize_case_ids, clean_final_table
 from dp_sequential_events.main.patterns import most_common_patterns
 from tabulate import tabulate
+import pandas as pd
 
 def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True, download_dafsa=True):
     # Annotated table 
@@ -26,15 +27,29 @@ def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delt
         print(f"\n Cases removed: {len_before - len_after} ({(len_before - len_after) / len_before:.2%})")
     return df_filtered
 
+def shift_timestamps(df, months, days):
+    df = df.copy()
+    df["FinalTimestamp"] = pd.to_datetime(df["FinalTimestamp"])
 
-def sampling_and_anonymization(df_filtered):
+    # Apply the shift to the "FinalTimestamp" column
+    df["FinalTimestamp"] = (
+        df["FinalTimestamp"] +
+        pd.DateOffset(months=months, days=days)
+    )
+
+    return df
+
+
+def sampling_and_anonymization(df_filtered, months_shift=0, days_shift=0):
     df_sampled, duplication_counter = case_sampling(df_filtered)
     df_noisy = inject_time_noise(df_sampled, duplication_counter)
     df_reconstructed = reconstruct_timestamps(df_noisy)
     df_compressed = compress_timestamps(df_reconstructed)
+
+    df_shifted = shift_timestamps(df_compressed, months_shift, days_shift)
     
     # Anonymize Case IDs
-    df_final = anonymize_case_ids(df_compressed)
+    df_final = anonymize_case_ids(df_shifted)
     df_final = df_final.sort_values("FinalTimestamp").reset_index(drop=True)
 
     return clean_final_table(df_final)
@@ -44,6 +59,8 @@ def main():
         dataset_name = input("\nEnter dataset path: ").strip()
         delta = float(input("Enter delta value: "))
         condition_number = float(input("Enter condition number: "))
+        months = int(input("Enter months shift: "))
+        days = int(input("Enter days shift: "))
 
         df_filtered = annotation_and_filtering(dataset_name, delta, condition_number)
 
@@ -51,7 +68,7 @@ def main():
         if repeat != "y":
             break
 
-    df_final = sampling_and_anonymization(df_filtered)
+    df_final = sampling_and_anonymization(df_filtered, months, days)
 
     print("\nFinal anonymized log:")
     print(tabulate(df_final.head(10), headers='keys', tablefmt='grid', showindex=False))
@@ -76,5 +93,5 @@ def main_patterns():
 
 
 if __name__ == "__main__":
-    main_patterns()
-    #main()
+    #main_patterns()
+    main()

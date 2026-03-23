@@ -5,17 +5,19 @@ from tabulate import tabulate
 
 def cli_main():
     while True:
-        dataset_name = input("Enter dataset name : ")
+        dataset_name = input("\nEnter dataset path: ").strip()
         delta = float(input("Enter delta value: "))
         condition_number = float(input("Enter condition number: "))
+        months = int(input("Enter months shift: "))
+        days = int(input("Enter days shift: "))
 
         df_filtered = annotation_and_filtering(dataset_name, delta, condition_number)
 
-        repeat = input("Do you want to choose other values? (y/n): ")
-        if repeat.lower() == 'n':
+        repeat = input("\nDo you want to try other values? (y/n): ").strip().lower()
+        if repeat != "y":
             break
             
-    df = sampling_and_anonymization(df_filtered)
+    df = sampling_and_anonymization(df_filtered, months, days)
     print("\n Final anonymized log:")
     print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
     
