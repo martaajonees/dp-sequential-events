@@ -40,24 +40,35 @@ def estimate_pk(group, delta=0.3, name="PK"):
         group[name] = (1 - delta) / 2
         return group
     
-    kde = gaussian_kde(t)
-    xs = np.linspace(0, 1, 1000)
-    cdf_vals = np.cumsum(kde(xs))
-    cdf_vals /= cdf_vals[-1]  # normalizar
+    if np.all(t == t[0]) or np.var(t) == 0:
+        group[name] = (1 - delta) / 2
+        return group
+    try:
+        kde = gaussian_kde(t)
+        xs = np.linspace(0, 1, 1000)
+        cdf_vals = np.cumsum(kde(xs))
+        
+        if cdf_vals[-1] == 0: # Handle cases where KDE produces all zeros
+            group[name] = (1 - delta) / 2
+            return group
 
-    def cdf(x):
-        return np.interp(x, xs, cdf_vals)
+        cdf_vals /= cdf_vals[-1]  # normalizar
 
-    pks = []
+        def cdf(x):
+            return np.interp(x, xs, cdf_vals)
 
-    for v, p in zip(t, group["Prec"]):
-        low = max(0, v - p)
-        high = min(1, v + p)
+        pks = []
 
-        pk = cdf(high) - cdf(low)
-        pks.append(pk)
+        for v, p in zip(t, group["Prec"]):
+            low = max(0, v - p)
+            high = min(1, v + p)
 
-    group[name] = pks
+            pk = cdf(high) - cdf(low)
+            pks.append(pk)
+
+        group[name] = pks
+    except(np.linalg.LinAlgError, ValueError):
+        group[name] = (1 - delta) / 2
     return group
 
 # Main function to create annotated table

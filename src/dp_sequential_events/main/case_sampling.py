@@ -23,7 +23,7 @@ def count_pattern_frequencies(patterns):
     )
     return pattern_counts
 
-def case_sampling(df, epsilon_d=0.5):
+def case_sampling(df, epsilon_d=1):
     df = df.copy()
     df["CaseID"] = df["CaseID"].astype(str)
 

@@ -6,17 +6,19 @@ import warnings
 warnings.simplefilter("ignore", FutureWarning)
 
 def epsilon_t(group, delta):
-    r = 1.0
+    r = group["RelTime"].max() - group["RelTime"].min()
+    if r == 0:
+        r = 1.0
 
     epsilons = []
 
     for pk in group["New PK"]:
         pk = np.clip(pk, 1e-6, 1 - 1e-6)
-        term = (pk / (1 - pk)) * ((1 / delta) + pk - 1)
-        if term <= 0 or term >= 1:
-            epsilons.append(0.0)
-            continue
-        epsilon_k = -np.log(term) * (1 / r)
+        # term = (pk / (1 - pk)) * ((1 / delta) + pk - 1)
+        # if term <= 0 or term >= 1:
+        #     epsilons.append(0.0)
+        #     continue
+        epsilon_k = np.log((1 - pk + 1e-6) / (pk + 1e-6)) + np.log(1 / delta)
 
         epsilon_k = max(epsilon_k, 0.0)
     
