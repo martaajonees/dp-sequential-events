@@ -6,39 +6,67 @@ from dp_sequential_events.main.patterns import most_common_patterns
 from tabulate import tabulate
 import pandas as pd
 
+# --- UTILS ----
+def get_user_input(patterns=False):
+    while True:
+        try: 
+            dataset_name = input("\nEnter dataset path: ").strip()
+            delta = float(input("Enter delta value: "))
+            
+            condition_number = float(input("Enter condition number (0-1): "))
+            if not (0 <= condition_number <= 1):
+                raise ValueError("Condition number must be between 0 and 1")
+            if not patterns:
+                months = int(input("Enter months shift: "))
+                if months < 0:
+                    raise ValueError("Months must not be negative. Please try again.")
+                    
+
+                days = int(input("Enter days shift: "))
+                if days < 0:
+                    raise ValueError("Days shift must not be negative. Please try again.")
+                
+                return dataset_name, delta, condition_number, months, days
+            else:
+                return dataset_name, delta, condition_number
+        
+        except ValueError as e:
+            print(f"Invalid input: {e}. Please try again.")
+
+def print_table(df, title=None):
+    if title: 
+        print(f"\n{title}")
+    print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
+
+def print_patterns(df, title):
+    patterns = most_common_patterns(df)
+    print_table(patterns, title)
+
+# --- MAIN FUNCTIONS ---
 def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True, download_dafsa=True):
     # Annotated table 
     if _print:
         print("Generating DAFSA-annotated table...")
     df = DAFSA_annotated_table(data_name, download_dafsa)
-    if _print:
-        print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
 
-    # Filtered table
     if _print:
+        print_table(df)
         print("\nFiltering DAFSA-annotated table...")
+        
     df_filtered = DAFSA_filtrated(df, delta, condition_number)
+        
     if _print:
-        print(tabulate(df_filtered.head(10), headers='keys', tablefmt='grid', showindex=False))
-
-    len_before = len(df)
-    len_after = len(df_filtered)
-    if _print:
-        print(f"\n Cases removed: {len_before - len_after} ({(len_before - len_after) / len_before:.2%})")
+        removed = len(df) - len(df_filtered)
+        print(f"\nCases removed: {removed} ({removed / len(df):.2%})")
     return df_filtered
 
 def shift_timestamps(df, months, days):
     df = df.copy()
+    # Apply the shift
     df["FinalTimestamp"] = pd.to_datetime(df["FinalTimestamp"])
-
-    # Apply the shift to the "FinalTimestamp" column
-    df["FinalTimestamp"] = (
-        df["FinalTimestamp"] +
-        pd.DateOffset(months=months, days=days)
-    )
+    df["FinalTimestamp"] = (df["FinalTimestamp"] + pd.DateOffset(months=months, days=days))
 
     return df
-
 
 def sampling_and_anonymization(df_filtered, months_shift=0, days_shift=0):
     df_sampled, duplication_counter = case_sampling(df_filtered)
@@ -56,41 +84,29 @@ def sampling_and_anonymization(df_filtered, months_shift=0, days_shift=0):
 
 def main():
     while True:
-        dataset_name = input("\nEnter dataset path: ").strip()
-        delta = float(input("Enter delta value: "))
-        condition_number = float(input("Enter condition number: "))
-        months = int(input("Enter months shift: "))
-        days = int(input("Enter days shift: "))
+        dataset_name, delta, condition_number, months, days = get_user_input()
 
-        df_filtered = annotation_and_filtering(dataset_name, delta, condition_number)
+        df = annotation_and_filtering(dataset_name, delta, condition_number)
 
-        repeat = input("\nDo you want to try other values? (y/n): ").strip().lower()
-        if repeat != "y":
+        if input("\nDo you want to try other values? (y/n): ").strip().lower() != "y":
             break
 
-    df_final = sampling_and_anonymization(df_filtered, months, days)
+    df = sampling_and_anonymization(df, months, days)
 
     print("\nFinal anonymized log:")
-    print(tabulate(df_final.head(10), headers='keys', tablefmt='grid', showindex=False))
+    print(tabulate(df.head(10), headers='keys', tablefmt='grid', showindex=False))
 
     
 def main_patterns():
-    dataset_name = input("\nEnter dataset path: ").strip()
-    delta = float(input("Enter delta value: "))
-    condition_number = float(input("Enter condition number: "))
+    dataset_name, delta, condition_number = get_user_input(patterns=True)
 
     df_filtered = annotation_and_filtering(dataset_name, delta, condition_number, False, False)
 
-    patterns_original = most_common_patterns(df_filtered)
-    print("\nMost common full patterns in original log:")
-    print(tabulate(patterns_original, headers='keys', tablefmt='grid', showindex=False))
+    print_patterns(df_filtered, "\nMost common full patterns in original log:")
 
     df_final = sampling_and_anonymization(df_filtered)
 
-    patterns_anon = most_common_patterns(df_final)
-    print("\nMost common full patterns in anonymized log:")
-    print(tabulate(patterns_anon, headers='keys', tablefmt='grid', showindex=False))
-
+    print_patterns(df_final, "\nMost common full patterns in anonymized log")
 
 if __name__ == "__main__":
     #main_patterns()
