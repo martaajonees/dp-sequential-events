@@ -98,7 +98,7 @@ def banner():
     console.print(Panel(
         "\n".join([
             "[bold cyan]DP Sequential Events Tool[/bold cyan]",
-            "[white]Process Mining · Anonymization Engine[/white]",
+            "[grey]Process Mining · Anonymization Engine[/grey]",
             "[dim]University of Cádiz · v1.7.0[/dim]"
         ]),
         box=box.DOUBLE,
