@@ -9,51 +9,55 @@
 
 ---
 
-## ✨ Project Description
-Sequential event logs often contain sensitive information. **dp-sequential-events** implements **differential privacy (DP)** techniques to anonymize sequential event logs while preserving statistical properties for analysis.
+## Project Description
+Sequential event logs often contain sensitive information. This program implements differential privacy (DP) techniques to anonymize sequential event logs while preserving statistical properties for analysis. This program can run 2 different functions: the full pipeline and the pattern-oriented pipeline.
 
-The pipeline follows these steps:
+<p align="center">
+  <picture>
+    <source srcset="https://github.com/user-attachments/assets/cfec7311-e4b5-444d-b4ad-fa01b438f985" width="400" media="(prefers-color-scheme: dark)" >
+    <img src="https://github.com/user-attachments/assets/25125997-a45e-48de-b7bb-e36ea52f0ee1" alt="Logo" width="400">
+  </picture>
+</p>
 
-1. **DAFSA annotation** of event logs  
-2. **Filtering** based on probabilistic risk measures  
-3. **Differentially private case sampling**  
-4. **Laplace noise injection** for timestamps  
-5. **Reconstruction of anonymized timestamps**  
-6. **Final privacy-preserving event log generation**
+## Installation
 
----
+To install this program you can use the following command: 
 
-## 🗂 Repository Structure
-```sh
-dp-sequential-events
-┣ 📂 src
-┃ ┃
-┃ ┗ 📂 dp_sequential_events
-┃   ┣ 📂 main
-┃   ┃ ┣ main.py
-┃   ┃ ┣ annotated.py
-┃   ┃ ┣ filtered.py
-┃   ┃ ┗ case_sampling.py
-┃   ┗ 📂 databases
-┣ pyproject.toml
-┗ requirements.txt
-```
 
-## 🚀 Online Execution
 
-You can run the CLI in Google Colab or locally.
-For Colab: [Open in Google Colab](https://colab.research.google.com/drive/17jejpDl4sX9L8885Pll4D_PJpxudtFL9?usp=sharing)
 
-Install from PyPI:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 pip install dp-sequential-events
 ```
-Run the CLI tool:
-```
-privseq
-```
+To initiate, you can use the command `privseq`
 
-## 👩‍💻 Authors
+## Usage
+<p align="center">
+  <picture>
+    <source srcset="https://github.com/user-attachments/assets/0a203990-6d15-4fe3-aa20-27bd0f6cec04" width="600" media="(prefers-color-scheme: dark)" >
+    <img src="https://github.com/user-attachments/assets/2d0e0ff7-a97c-48b6-8bcd-a3d012a5ee45" alt="Logo" width="600">
+  </picture>
+</p>
+
+
+## Authors
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
