@@ -1,9 +1,9 @@
 
 import pandas as pd
-from dafsa import DAFSA
 from scipy.stats import gaussian_kde
 import numpy as np
 from graphviz import Digraph
+import networkx as nx
 
 # Functions
 def normalize_rt(group):
@@ -33,6 +33,57 @@ def precision(group):
 
         p_vals.append(p_norm)
     return pd.Series(p_vals, index=group.index)
+
+def build_dafsa_graph(unique_seqs):
+    G = nx.MultiDiGraph()
+    G.add_node(0)
+    node_counter = 1
+    
+    for seq in unique_seqs:
+        current = 0
+        for act in seq:
+            next_node = None
+            for nbr in G.successors(current):
+                for key, data in G[current][nbr].items():
+                    if data.get('label') == act:
+                        next_node = nbr
+                        break
+                if next_node is not None:
+                    break
+            
+            if next_node is None:
+                G.add_node(node_counter)
+                G.add_edge(current, node_counter, label=act)
+                current = node_counter
+                node_counter += 1
+            else:
+                current = next_node
+
+    changed = True
+    while changed:
+        changed = False
+        nodes = list(G.nodes())
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                n1 = nodes[i]
+                n2 = nodes[j]
+                if n1 not in G or n2 not in G:
+                    continue
+                
+                edges1 = sorted([(data['label'], nbr) for nbr in G.successors(n1) for key, data in G[n1][nbr].items()])
+                edges2 = sorted([(data['label'], nbr) for nbr in G.successors(n2) for key, data in G[n2][nbr].items()])
+                
+                if edges1 == edges2:
+                    incoming = list(G.predecessors(n2))
+                    for pred in incoming:
+                        for key, data in list(G[pred][n2].items()):
+                            G.add_edge(pred, n1, label=data['label'])
+                    G.remove_node(n2)
+                    changed = True
+                    break
+            if changed:
+                break
+    return G
 
 def estimate_pk(group, delta=0.3, name="PK"):
     t = group["NrmRelTime"].values
@@ -84,8 +135,10 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv", do
     sequences = {k: ["START"] + v for k, v in sequences.items()}
 
     # 3. Create DAFSA from sequences
-    dafsa = DAFSA(list(sequences.values()))
-    graph = dafsa.to_graph() 
+    unique_seqs = list(set(tuple(seq) for seq in sequences.values()))
+    unique_seqs.sort() 
+    
+    graph = build_dafsa_graph(unique_seqs)
 
     # State map 
     state_map = {state: i for i, state in enumerate(graph.nodes())}
@@ -100,9 +153,10 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv", do
     start = candidates[0]
 
     def next_state(G, current, act):
-        for nbr in G.neighbors(current):
-            if G.get_edge_data(current, nbr).get("label") == act:
-                return nbr
+        for nbr in G.successors(current):
+            for key, data in G[current][nbr].items():
+                if data.get("label") == act:
+                    return nbr
         raise ValueError(f"No transition from {current} with {act}")
 
     # 6. Build DAFSA-annotated table
@@ -170,17 +224,8 @@ def DAFSA_annotated_table(nombre_archivo="../databases/datos_sinteticos.csv", do
     if download_dafsa:
         dot = Digraph(engine="dot")
         dot.attr(rankdir="LR", dpi="200")
-
-        dot.attr("node",
-                shape="circle",
-                style="filled",
-                fillcolor="lightgray",
-                fontcolor="black")
-
-        dot.attr("edge",
-                color="gray40",
-                penwidth="0.3",
-                arrowsize="0.4")
+        dot.attr("node", shape="circle", style="filled", fillcolor="lightgray", fontcolor="black")
+        dot.attr("edge", color="gray40", penwidth="0.3", arrowsize="0.4")
 
         for u, v, data in graph.edges(data=True):
             lbl = data.get("label", "")
