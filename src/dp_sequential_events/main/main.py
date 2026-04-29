@@ -82,6 +82,7 @@ def render_dafsa_tree(graph, start):
 def print_patterns(df, title):
     patterns = most_common_patterns(df)
     print_table(patterns, title)
+    return patterns
 
 def text_input(message, default=""):
     if is_colab():
@@ -176,33 +177,11 @@ def export_csv(df):
 
     console.print(f"\n[bold green]✔ File saved at:[/] {full_path.resolve()}")
 
-# def build_dafsa_from_df(df):
-#     # build sequences
-#     grouped = df.groupby("CaseID")
-#     sequences = grouped["Activity"].apply(lambda x: x.astype(str).tolist()).to_dict()
-
-#     # add START symbol
-#     sequences = {k: ["START"] + v for k, v in sequences.items()}
-
-#     dafsa = DAFSA(list(sequences.values()))
-#     graph = dafsa.to_graph()
-
-#     # find initial state
-#     targets = {v for _, v in graph.edges()}
-#     start_candidates = [n for n in graph.nodes() if n not in targets]
-
-#     if not start_candidates:
-#         raise ValueError("No root state found")
-
-#     start = start_candidates[0]
-
-#     return graph, start
-
 def main_menu():
     return select_option("Select an option:", ["Run full pipeline", "Run patterns-oriented pipeline", "Exit"])
 
 # --- MAIN FUNCTIONS ---
-def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True):
+def annotation_and_filtering(data_name, delta=0.3, condition_number=1, _print=True):
     # Annotated table 
     if _print:
         console.rule("[bold green]ANNOTATION")
@@ -305,7 +284,7 @@ def patterns():
 
     dataset_name, delta, condition_number = get_user_input(patterns=True)
 
-    df_filtered = annotation_and_filtering(dataset_name, delta, condition_number, False, False)
+    df_filtered = annotation_and_filtering(dataset_name, delta, condition_number, False)
 
     console.rule("[bold cyan]PATTERNS (ORIGINAL)")
     print_patterns(df_filtered, "\nMost common full patterns in original log:")
@@ -314,6 +293,9 @@ def patterns():
 
     console.rule("[bold cyan]PATTERNS (ANONYMIZED)")
     print_patterns(df_final, "\nMost common full patterns in anonymized log")
+    
+    console.print("\n[dim]Press ENTER to return to menu...[/dim]")
+    input()
 
 if __name__ == "__main__":
     main()

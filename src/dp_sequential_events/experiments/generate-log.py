@@ -6,22 +6,17 @@ import pm4py
 # Define the variants and their frequencies
 # R1
 variants = {
-    "A B C E F": 900,      # Aprobado estándar sin uso intensivo de foros
-    "A B C D E F": 632,    # Aprobado con alta participación colaborativa en foros
-    "A B C G": 350,        # Suspenso por inactividad o falta de entrega de evaluaciones
-    "A B C E G": 355,      # Suspenso habiendo entregado las evaluaciones
-    "A H": 200,            # Abandono temprano (registro sin llegar a entrar al VLE)
-    "A B C H": 500,        # Abandono a mitad de curso (interactúa pero no entrega nada)
-    "A B C E H": 321      # Abandono tardío (entrega alguna evaluación antes de retirarse)
+    "A B C E F": 900,     
+    "A B C D E F": 632,    
+    "A B C G": 350,        
+    "A B C E G": 355,     
+    "A H": 200,            
+    "A B C H": 500,       
+    "A B C E H": 321      
 }
 # R2
 # variants = {
-#     # Variante de suspenso larga (basada en Figura 3):
-#     # Empieza en quiz, pasa por el foro, y termina mirando los materiales (page view / url view) al final.
 #     "F G H C D I J B K": 15,  
-    
-#     # Variante de suspenso corta:
-#     # Intenta el quiz directamente, pide ayuda en el foro y cierra el cuestionario.
 #     "F G C D I K": 16,        
 
 #     # Ruta 1: Perfil Social / Colaborativo (basada en Figura 4).
