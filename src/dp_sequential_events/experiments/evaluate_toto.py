@@ -18,17 +18,17 @@ def evaluate_dataset(dataset):
     Y_etiquettes = []
     for seq in sequences:
         if len(seq) > 1:  # Ensure there are at least 2 activities to predict the next one
-            X_sequences.append(seq[:-1])  # Use all but the last activity as input
-            Y_etiquettes.append(seq[-1]) # Use the last activity as the label
+            for i in range(1, len(seq)):
+                X_sequences.append(seq[:i])  # Use all but the last activity as input
+                Y_etiquettes.append(seq[i]) # Use the next activity as the label
     
     # Change the labels to integers
     all_activities = df['Activity'].unique()
-    encoder_X = LabelEncoder()
-    encoder_X.fit(all_activities)
-    X_numerical = [encoder_X.transform(seq).tolist() for seq in X_sequences]
+    encoder= LabelEncoder()
+    encoder.fit(all_activities)
 
-    encoder_Y = LabelEncoder()
-    Y_numerical = encoder_Y.fit_transform(Y_etiquettes)
+    X_numerical = [encoder.transform(seq).tolist() for seq in X_sequences]
+    Y_numerical = encoder.transform(Y_etiquettes)
 
     # Padding sequences to ensure they have the same length
     max_length = max(len(seq) for seq in X_numerical)
@@ -41,7 +41,7 @@ def evaluate_dataset(dataset):
 
     # Build and train the LSTM model
     vocab_size = len(all_activities) + 1  # +1 for padding
-    num_classes = len(np.unique(Y_numerical))
+    num_classes = len(all_activities)
 
     model = Sequential()
     # Layer 1 - Embedding layer

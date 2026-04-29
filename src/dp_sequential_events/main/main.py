@@ -7,13 +7,14 @@ from pathlib import Path
 import pandas as pd
 from datetime import datetime
 import os
+import random
+import sys
 
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
 from rich.status import Status
-from dafsa import DAFSA
 from InquirerPy import inquirer
 
 console = Console()
@@ -175,38 +176,38 @@ def export_csv(df):
 
     console.print(f"\n[bold green]✔ File saved at:[/] {full_path.resolve()}")
 
-def build_dafsa_from_df(df):
-    # build sequences
-    grouped = df.groupby("CaseID")
-    sequences = grouped["Activity"].apply(lambda x: x.astype(str).tolist()).to_dict()
+# def build_dafsa_from_df(df):
+#     # build sequences
+#     grouped = df.groupby("CaseID")
+#     sequences = grouped["Activity"].apply(lambda x: x.astype(str).tolist()).to_dict()
 
-    # add START symbol
-    sequences = {k: ["START"] + v for k, v in sequences.items()}
+#     # add START symbol
+#     sequences = {k: ["START"] + v for k, v in sequences.items()}
 
-    dafsa = DAFSA(list(sequences.values()))
-    graph = dafsa.to_graph()
+#     dafsa = DAFSA(list(sequences.values()))
+#     graph = dafsa.to_graph()
 
-    # find initial state
-    targets = {v for _, v in graph.edges()}
-    start_candidates = [n for n in graph.nodes() if n not in targets]
+#     # find initial state
+#     targets = {v for _, v in graph.edges()}
+#     start_candidates = [n for n in graph.nodes() if n not in targets]
 
-    if not start_candidates:
-        raise ValueError("No root state found")
+#     if not start_candidates:
+#         raise ValueError("No root state found")
 
-    start = start_candidates[0]
+#     start = start_candidates[0]
 
-    return graph, start
+#     return graph, start
 
 def main_menu():
     return select_option("Select an option:", ["Run full pipeline", "Run patterns-oriented pipeline", "Exit"])
 
 # --- MAIN FUNCTIONS ---
-def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True, download_dafsa=True):
+def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delta=0.3, condition_number=1, _print=True):
     # Annotated table 
     if _print:
         console.rule("[bold green]ANNOTATION")
     with Status("[bold green]Generating DAFSA-annotated table..."):
-        df = DAFSA_annotated_table(data_name, download_dafsa)
+        df = DAFSA_annotated_table(data_name)
 
     if _print:
         print_table(df, "Annotated Table")
@@ -225,12 +226,28 @@ def annotation_and_filtering(data_name="../databases/datos_sinteticos.csv", delt
         )
     return df_filtered
 
-def shift_timestamps(df, months, days):
+def shift_timestamps(df, max_months, max_days):
     df = df.copy()
-    # Apply the shift
     df["FinalTimestamp"] = pd.to_datetime(df["FinalTimestamp"])
-    df["FinalTimestamp"] = (df["FinalTimestamp"] + pd.DateOffset(months=months, days=days))
 
+    seed = random.randrange(sys.maxsize)
+    random.seed(seed)
+
+    series_act = []
+    for _, group in df.groupby("CaseID"):
+        original_timestamp = group["FinalTimestamp"]
+        m = random.randint(0, max_months)
+        d = random.randint(0, max_days)
+        shifted_timestamp = original_timestamp + pd.DateOffset(months=m, days=d)
+        
+        in_december = (original_timestamp.dt.month == 12).any()
+        change_year = (original_timestamp.dt.year != shifted_timestamp.dt.year).any()
+        if in_december or change_year:
+            series_act.append(original_timestamp)
+        else:
+            series_act.append(shifted_timestamp)
+    
+    df["FinalTimestamp"] = pd.concat(series_act)
     return df
 
 def sampling_and_anonymization(df_filtered, months_shift=0, days_shift=0):
@@ -271,8 +288,6 @@ def pipeline():
             break
 
     df = sampling_and_anonymization(df, months, days)
-    #console.rule("[bold green]ANONYMIZED DAFSA")
-    #graph, start = build_dafsa_from_df(df)
 
     console.rule("[bold green]FINAL OUTPUT")
     print_table(df, "Final Anonymized Log")
