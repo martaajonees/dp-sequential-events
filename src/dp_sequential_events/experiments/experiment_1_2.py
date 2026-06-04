@@ -7,10 +7,6 @@ import numpy as np
 
 
 def extract_epsilon_stats(df_filtered):
-    """
-    Extrae estadísticas de epsilon_t del DataFrame filtrado.
-    Devuelve media, mediana, mínimo y máximo de epsilon_t.
-    """
     eps_col = "ϵt"
 
     if eps_col not in df_filtered.columns:
@@ -31,11 +27,6 @@ def extract_epsilon_stats(df_filtered):
 
 
 def extract_epsilon_by_transition(df_filtered):
-    """
-    Calcula la media de epsilon_t agrupando por transición DAFSA
-    (SrcState, Activity, TgtState), que es la unidad de análisis
-    equivalente a las filas de la Tabla 3.2 del documento.
-    """
     eps_col = "ϵt"
     group_cols = ["SrcState", "Activity", "TgtState"]
 
@@ -100,18 +91,14 @@ if __name__ == "__main__":
             df_trans["delta"] = delta
             transition_results.append(df_trans)
 
-    # ---------------------------------------------------------------
-    # TABLA RESUMEN
-    # ---------------------------------------------------------------
+    # Sum up and print summary table
     summary_df = pd.DataFrame(summary_results)
     print("\n\n=== TABLA RESUMEN: ϵt por dataset y delta ===")
     print(summary_df.to_string(index=False))
 
     transition_df = pd.concat(transition_results, ignore_index=True)
 
-    # ---------------------------------------------------------------
-    # FIGURA 1: evolución de la media de ϵt frente a delta
-    # ---------------------------------------------------------------
+    # Evolution of epsilon_t with delta: line plot with mean and min-max range
     sns.set_theme(style="whitegrid")
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
