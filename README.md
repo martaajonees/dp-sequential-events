@@ -16,16 +16,8 @@
 </p>
 
 <p align="center">
-  Anonymize sequential event logs with differential privacy — preserving statistical utility while protecting sensitive data.
-</p>
-
-<p align="center">
   <a href="https://colab.research.google.com/drive/17jejpDl4sX9L8885Pll4D_PJpxudtFL9#scrollTo=2Xai_2ImKTd9">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Google Colab">
-  </a>
-  &nbsp;
-  <a href="https://martaajonees.github.io/dp-sequential-events/">
-    <img src="https://img.shields.io/badge/docs-user%20manual-black" alt="User Manual">
   </a>
 </p>
 
@@ -33,7 +25,7 @@
 
 ## Overview
 
-Sequential event logs — from hospital records to business process data — often contain sensitive information. `dp-sequential-events` implements **differential privacy (DP)** techniques to anonymize these logs while preserving the statistical properties needed for meaningful analysis.
+Sequential event logs often contain sensitive information. `dp-sequential-events` implements **differential privacy (DP)** techniques to anonymize these logs while preserving the statistical properties needed for meaningful analysis.
 
 **Two pipelines are available:**
 
@@ -62,7 +54,7 @@ privseq
 
 ## Usage
 
-Once launched, `privseq` opens a step-by-step interactive menu — no flags to memorize.
+Once launched, `privseq` opens a step-by-step interactive menu: no flags to memorize.
 
 <p align="center">
   <picture>
@@ -75,13 +67,13 @@ Once launched, `privseq` opens a step-by-step interactive menu — no flags to m
 
 ## Input format
 
-Your event log should be a CSV or XES file with the following columns:
+Your event log should be a CSV file with the following columns:
 
 | Column | Description |
 |---|---|
-| `case:concept:name` | Unique case identifier |
-| `concept:name` | Activity name |
-| `time:timestamp` | Event timestamp (ISO 8601) |
+| `CaseID` | Unique case identifier |
+| `Activity` | Activity name |
+| `Timestamp` | Event timestamp (ISO 8601) |
 
 ---
 
