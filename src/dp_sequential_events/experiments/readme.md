@@ -30,8 +30,16 @@ Looks at individual trace patterns rather than aggregate statistics:
 `experiment_2_1.py` and `experiment_2_2.py` correspond respectively to these two sub-analyses (pattern-frequency drift, and the with/without MTP comparison).
 
 ---
+ 
+## Experiment 3 — Process graph comparison
+**File: `experiment_3.py`**
+ 
+Evaluates whether the anonymized logs preserve the underlying process structure by rendering and comparing the process graphs of the original and anonymized event logs. For each dataset, the script builds a graph representation showing nodes (activities) and edges (transitions) annotated with their frequency and relative probability, both for the original log and for the log anonymized with δ = 0.3. This makes it possible to visually verify that the most frequent paths, node proportions, and transition probabilities remain almost identical after anonymization, with deviations typically below 1%.
+ 
+---
+ 
 
-## Experiment 3 — Machine learning impact (TOTO vs. TPTO)
+## Experiment 4 — Machine learning impact (TOTO vs. TPTO)
 **Files: `experiment_3_1.py`, `experiment_3_2_toto.py`, `experiment_3_3_tpto.py`**
 
 Measures the **cost of privacy**: whether anonymization degrades the usefulness of the log for a downstream machine learning task — next-activity prediction using a Recurrent Neural Network (RNN).
